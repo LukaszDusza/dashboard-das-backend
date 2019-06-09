@@ -8,9 +8,12 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.sql.Date;
 import java.util.List;
+
+/*
+ * Klasa odpowiedzialna za warstwę DAO aplikacji
+ * */
 
 @Transactional
 @Repository
@@ -34,7 +37,7 @@ public interface RaportDasRepository extends JpaRepository<RaportTotal, Long> {
 
     String DB_NAME = Naming.TEST_TABLE_NAME;
 
-     String RAPORT_BY_PROPERTIES = "SELECT * FROM " + DB_NAME + " WHERE " +
+    String RAPORT_BY_PROPERTIES = "SELECT * FROM " + DB_NAME + " WHERE " +
             DB_NAME + ".data_zawarcia BETWEEN ?1 AND ?2" +
             " AND " + DB_NAME + ".nazwa_agenta like (?3%)" +
             " AND " + DB_NAME + ".dyrektor_ekspert_segmentu like ?4%" +

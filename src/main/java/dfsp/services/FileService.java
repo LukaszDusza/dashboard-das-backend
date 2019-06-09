@@ -17,6 +17,11 @@ import java.util.stream.Collectors;
 
 import static dfsp.configs.Naming.*;
 
+/*
+* klasa odpowiedzialna za operacje na plikach.
+*
+* */
+
 @Service
 public class FileService {
     

@@ -1,12 +1,15 @@
 package dfsp.models.raport;
 
-import dfsp.configs.Naming;
 import lombok.*;
+import org.springframework.stereotype.Component;
+
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.sql.Date;
 
-import static dfsp.configs.Naming.TEST_TABLE_NAME;
+/*
+* Klasa modelowa
+* */
 
 @NoArgsConstructor
 @AllArgsConstructor
@@ -14,7 +17,6 @@ import static dfsp.configs.Naming.TEST_TABLE_NAME;
 @Setter
 @Builder
 @Entity
-@Table(name = TEST_TABLE_NAME)
 public class RaportTotal {
 
     @Id

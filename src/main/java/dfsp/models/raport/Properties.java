@@ -4,6 +4,11 @@ import lombok.*;
 
 import java.math.BigDecimal;
 
+/*
+*
+* Klasa modelowa
+* */
+
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
