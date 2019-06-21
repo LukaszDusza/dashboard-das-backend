@@ -15,16 +15,16 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static dfsp.configs.Naming.*;
-
-/*
-* klasa odpowiedzialna za operacje na plikach.
-*
-* */
+/** klasa odpowiedzialna za operacje na plikach. */
 
 @Service
 public class FileService {
-    
+
+    private static final String LOCAL_PATH = "c:\\files\\";
+    private static final String FILES = "/api/v1/files";
+    private static final String DOWNLOAD_PATH = "/download";
+    private static final String DELETE_PATH = "/delete";
+
     public List<LocalFile> getFiles() throws IOException {
 
         return Files.walk(Paths.get(LOCAL_PATH))
@@ -66,7 +66,7 @@ public class FileService {
         return new UrlResource(Paths.get(LOCAL_PATH + filename).toUri());
     }
 
-    public boolean deleteFile(@PathVariable("file") String file) {
+    public boolean deleteFile(String file) {
         return new File(LOCAL_PATH + file).delete();
     }
 

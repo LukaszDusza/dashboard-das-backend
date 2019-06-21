@@ -1,22 +1,22 @@
 package dfsp.models.raport;
 
 import lombok.*;
-import org.springframework.stereotype.Component;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.sql.Date;
 
-/*
-* Klasa modelowa
-* */
+/**
+ * Klasa modelowa raportu, odzwierciedla tabelę i kolumny w bazie danych
+ */
 
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
+@Builder
 @Getter
 @Setter
-@Builder
 @Entity
+@Table(name = "raport_test_2")
 public class RaportTotal {
 
     @Id

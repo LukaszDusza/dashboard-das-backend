@@ -3,9 +3,7 @@ package dfsp.models.raport;
 
 import lombok.*;
 
-/*
-* Klasa modelowa pliku lokalnego
-* */
+/** Klasa modelowa pliku lokalnego */
 
 @NoArgsConstructor
 @AllArgsConstructor
