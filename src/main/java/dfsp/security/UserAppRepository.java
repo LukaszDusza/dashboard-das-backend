@@ -5,9 +5,9 @@ import org.springframework.data.jpa.repository.Query;
 
 import java.util.Optional;
 
-public interface UserAppRepository extends JpaRepository<UserApp, Integer> {
+public interface UserAppRepository extends JpaRepository<UserApp, Long> {
 
 
-    @Query(value = "select u from UserApp  u where u.name = ?1")
-    Optional<UserApp> findUserAppByName(String name);
+    @Query(value = "select u from UserApp u left join fetch u.roles r where u.username=?1")
+    Optional<UserApp> findUserAppByName(String username);
 }

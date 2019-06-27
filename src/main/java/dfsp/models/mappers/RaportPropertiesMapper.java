@@ -32,4 +32,9 @@ public class RaportPropertiesMapper implements Mapper<RaportPropertiesIncome, Ra
                 .uzytkownik(p.getUzytkownik())
                 .build();
     }
+
+    @Override
+    public RaportPropertiesIncome reverse(RaportPropertiesToQuery raportPropertiesToQuery) throws ParseException {
+        return null;
+    }
 }

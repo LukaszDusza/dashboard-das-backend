@@ -1,20 +1,31 @@
 package dfsp.services;
 
 import dfsp.commons.DateParser;
+import dfsp.commons.ManagerXLS;
 import dfsp.models.mappers.RaportPropertiesMapper;
 import dfsp.models.mappers.RaportTotalMapper;
 import dfsp.models.raport.RaportPropertiesIncome;
 import dfsp.models.raport.RaportTotalDto;
 import dfsp.repositories.RaportTotalRepository;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.text.ParseException;
 import java.util.List;
 import java.util.stream.Collectors;
 
-/** Klasa odpowiedzialna za warstę serwisową aplikacji. Działa pomiędzy kontrolerem a repozytorium */
+import static dfsp.commons.Naming.LOCAL_PATH;
+
+/**
+ * Klasa odpowiedzialna za warstę serwisową aplikacji. Działa pomiędzy kontrolerem a repozytorium
+ */
 
 @Service
 public class RaportTotalService {
@@ -22,6 +33,7 @@ public class RaportTotalService {
     private RaportTotalRepository raportTotalRepository;
     private RaportTotalMapper raportTotalMapper;
     private RaportPropertiesMapper raportPropertiesMapper;
+    private ManagerXLS<RaportTotalDto> managerXLS = new ManagerXLS<>(RaportTotalDto.class);
 
 
     public RaportTotalService(RaportTotalRepository raportTotalRepository, RaportTotalMapper raportTotalMapper, RaportPropertiesMapper raportPropertiesMapper) {
@@ -30,10 +42,18 @@ public class RaportTotalService {
         this.raportPropertiesMapper = raportPropertiesMapper;
     }
 
-    public List<RaportTotalDto> getRaportTotalByProperties(@PathVariable String dateFrom, @PathVariable String dateTo, RaportPropertiesIncome incomeProps) throws ParseException {
+    /**
+     * Pobranie raportu z bazy danych na podstawie parametrów i zakresu dat
+     */
 
-        if(StringUtils.isEmpty(dateFrom)) { dateFrom = "1999-01-01";}
-        if(StringUtils.isEmpty(dateTo)) { dateTo = "2100-12-31";}
+    public List<RaportTotalDto> getRaportTotalByProperties(String dateFrom, String dateTo, RaportPropertiesIncome incomeProps) throws ParseException {
+
+        if (StringUtils.isEmpty(dateFrom)) {
+            dateFrom = "1999-01-01";
+        }
+        if (StringUtils.isEmpty(dateTo)) {
+            dateTo = "2100-12-31";
+        }
 
         return raportTotalRepository
                 .findRaportTotalByProperties(DateParser.toSqlDate(dateFrom), DateParser.toSqlDate(dateTo), raportPropertiesMapper.map(incomeProps))
@@ -42,14 +62,65 @@ public class RaportTotalService {
                 .collect(Collectors.toList());
     }
 
-    public List<RaportTotalDto> getRaportTotalBetweenDates(@PathVariable String dateFrom, @PathVariable String dateTo) throws ParseException {
-        if(StringUtils.isEmpty(dateFrom)) { dateFrom = "1999-01-01";}
-        if(StringUtils.isEmpty(dateTo)) { dateTo = "2100-12-31";}
+    /**
+     * Pobranie raportu z bazy danych na podstawie tylko zakresu dat
+     */
+
+    public List<RaportTotalDto> getRaportTotalBetweenDates(String dateFrom, String dateTo) throws ParseException {
+        if (StringUtils.isEmpty(dateFrom)) {
+            dateFrom = "1999-01-01";
+        }
+        if (StringUtils.isEmpty(dateTo)) {
+            dateTo = "2100-12-31";
+        }
         return raportTotalRepository
                 .findRaportTotalBetweenDates(DateParser.toSqlDate(dateFrom), DateParser.toSqlDate(dateTo))
                 .stream()
                 .map(raportTotalMapper::map)
                 .collect(Collectors.toList());
+    }
+
+
+    /**
+     * Aktualizacja raportu w  bazie danych na podstawie pliku znajdującego się w katalogu z plikami xls.
+     */
+
+    public void updateBaseRaport(String filename) {
+
+        try {
+            File file = new File(Paths.get(LOCAL_PATH + filename).toString());
+            MultipartFile result = new MockMultipartFile(filename, file.getName(), "application/excel", Files.readAllBytes(file.toPath()));
+            raportTotalRepository.deleteAll();
+            raportTotalRepository.flush();
+            raportTotalRepository.saveAll(managerXLS.loadXLSFileToList(result).stream().map(raportTotalMapper::reverse).collect(Collectors.toList()));
+
+        } catch (IOException | NoSuchMethodException | ParseException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * zrzut aktualnych danuch znajdujących się w bazie do pliku XLS i umieszcze tego pliku w katalogu z plikami. Zmienna Naming.LOCAL_PATH
+     */
+
+    public void saveCurrentRaportToXLSFileIntoDirectory(String filename) {
+        List<RaportTotalDto> series = raportTotalRepository.findAll().stream().map(raportTotalMapper::map).collect(Collectors.toList());
+
+        try {
+            managerXLS.saveListToXLSFileInToDirectory(filename, series);
+        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException | IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /** zapisanie przefiltrowanego raportu do pliku XLS i umieszcze tego pliku w katalogu z plikami. Zmienna Naming.LOCAL_PATH*/
+
+    public void saveFilteredRaportToXLSFileIntoDirectory(String filename, String dateFrom, String dateTo, RaportPropertiesIncome incomeProps) {
+        try {
+            managerXLS.saveListToXLSFileInToDirectory(filename, getRaportTotalByProperties(dateFrom, dateTo, incomeProps));
+        } catch (ParseException | NoSuchMethodException | InvocationTargetException | IllegalAccessException | IOException e) {
+            e.printStackTrace();
+        }
     }
 
 }

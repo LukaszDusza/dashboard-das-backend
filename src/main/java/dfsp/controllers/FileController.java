@@ -3,22 +3,27 @@ package dfsp.controllers;
 import dfsp.models.raport.LocalFile;
 import dfsp.services.FileService;
 import org.springframework.core.io.Resource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
 
+import static dfsp.commons.Naming.*;
 
 
-/** Klasa obsługująca żądania na warstwe zarządzania plikami lokalnymi. */
+/**
+ * Klasa obsługująca żądania na warstwe zarządzania plikami lokalnymi.
+ */
 
-@CrossOrigin
+
+@CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 public class FileController {
-
-    private static final String  FILES = "/api/v1/files";
-    private static final String DOWNLOAD_PATH = "/download";
-    private static final String DELETE_PATH = "/delete";
 
     private FileService fileService;
 
@@ -26,20 +31,33 @@ public class FileController {
         this.fileService = fileService;
     }
 
+    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN' )")
     @GetMapping(FILES)
     public List<LocalFile> getLocalFiles() throws IOException {
         return fileService.getFiles();
     }
 
+    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN' )")
     @GetMapping(FILES + DOWNLOAD_PATH + "/{filename}")
-    public Resource downloadFile(@PathVariable String filename) throws IOException {
-        return fileService.downloadFile(filename);
+    public ResponseEntity<Resource> downloadFile(@PathVariable String filename) throws IOException {
+        Resource resource = fileService.downloadFile(filename);
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType("application/excel"))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFile().getName() + "\"")
+                .contentLength(resource.getFile().length())
+                .body(resource);
     }
 
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
     @DeleteMapping(FILES + DELETE_PATH + "/{filename}")
     public boolean deleteFile(@PathVariable String filename) {
         return fileService.deleteFile(filename);
     }
 
-    // todo upload file
+    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN' )")
+    @PostMapping(FILES + UPLOAD_PATH)
+    public void uploadFiles(@RequestParam("file") MultipartFile upload) {
+        fileService.storeFile(upload);
+
+    }
 }

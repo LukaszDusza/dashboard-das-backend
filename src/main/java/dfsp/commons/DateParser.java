@@ -19,6 +19,11 @@ public class DateParser {
     public static Date toUtilDate(String date) throws ParseException {
         DateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
         return formatter.parse(date);
+    }
 
+    public static String millsToStringDate(long mills) {
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH-mm-ss");
+        Date resultdate = new Date(mills);
+        return sdf.format(resultdate);
     }
 }

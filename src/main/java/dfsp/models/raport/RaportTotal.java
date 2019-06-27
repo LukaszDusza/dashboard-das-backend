@@ -6,6 +6,8 @@ import javax.persistence.*;
 import java.math.BigDecimal;
 import java.sql.Date;
 
+import static dfsp.commons.Naming.TEST_TABLE_NAME;
+
 /**
  * Klasa modelowa raportu, odzwierciedla tabelę i kolumny w bazie danych
  */
@@ -16,7 +18,7 @@ import java.sql.Date;
 @Getter
 @Setter
 @Entity
-@Table(name = "raport_test_2")
+@Table(name = TEST_TABLE_NAME)
 public class RaportTotal {
 
     @Id
