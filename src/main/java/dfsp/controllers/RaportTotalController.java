@@ -30,8 +30,10 @@ public class RaportTotalController {
     /** pobranie raportu według dat i parametrów.*/
 
     @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN' )")
-    @GetMapping("/api/v1/raport/{dateFrom}/{dateTo}")
-    public List<RaportTotalDto> getRaportTotalByParams(@PathVariable String dateFrom, @PathVariable String dateTo, RaportPropertiesIncome incomeProps) throws ParseException {
+    @PostMapping("/api/v1/raport")
+    public List<RaportTotalDto> getRaportTotalByParams(@RequestParam(value = "dateFrom", required = false) String dateFrom,
+                                                       @RequestParam(value = "dateTo", required = false) String dateTo,
+                                                       @RequestBody RaportPropertiesIncome incomeProps) throws ParseException {
         return raportTotalService.getRaportTotalByProperties(dateFrom, dateTo, incomeProps);
     }
 

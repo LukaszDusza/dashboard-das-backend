@@ -53,6 +53,7 @@ public class CustomAuthenticationFilter extends OncePerRequestFilter {
         } else {
             logger.warn("couldn't find bearer string, will ignore the header");
 
+
         }
 
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {

@@ -39,5 +39,3 @@ public interface RaportTotalRepository extends JpaRepository<RaportTotal, Long> 
     List<RaportTotal> findRaportTotalBetweenDates(Date dateFrom, Date dateTo);
 
 }
-
-
