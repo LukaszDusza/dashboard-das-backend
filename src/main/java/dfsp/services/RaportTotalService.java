@@ -4,10 +4,13 @@ import dfsp.commons.DateParser;
 import dfsp.commons.ManagerXLS;
 import dfsp.models.mappers.RaportPropertiesMapper;
 import dfsp.models.mappers.RaportTotalMapper;
+import dfsp.models.raport.RaportAgregowany;
 import dfsp.models.raport.RaportPropertiesIncome;
+import dfsp.models.raport.RaportTotal;
 import dfsp.models.raport.RaportTotalDto;
 import dfsp.repositories.RaportTotalRepository;
 import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -18,6 +21,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.text.ParseException;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -56,7 +60,7 @@ public class RaportTotalService {
         }
 
         return raportTotalRepository
-                .findRaportTotalByProperties(DateParser.toSqlDate(dateFrom), DateParser.toSqlDate(dateTo), raportPropertiesMapper.map(incomeProps))
+                .findRaportTotalByProperties(DateParser.fromSqlDate(dateFrom), DateParser.fromSqlDate(dateTo), raportPropertiesMapper.map(incomeProps))
                 .stream()
                 .map(raportTotalMapper::map)
                 .collect(Collectors.toList());
@@ -85,14 +89,21 @@ public class RaportTotalService {
      * Aktualizacja raportu w  bazie danych na podstawie pliku znajdującego się w katalogu z plikami xls.
      */
 
+    @Async
     public void updateBaseRaport(String filename) {
 
         try {
             File file = new File(Paths.get(LOCAL_PATH + filename).toString());
             MultipartFile result = new MockMultipartFile(filename, file.getName(), "application/excel", Files.readAllBytes(file.toPath()));
+            List<RaportTotal> series = new LinkedList<>();
+
+            managerXLS.loadXLSFileToList(result).forEach( r -> series.add(raportTotalMapper.reverse(r)));
+
+        //    series.forEach(System.out::println);
+
             raportTotalRepository.deleteAll();
             raportTotalRepository.flush();
-            raportTotalRepository.saveAll(managerXLS.loadXLSFileToList(result).stream().map(raportTotalMapper::reverse).collect(Collectors.toList()));
+            raportTotalRepository.saveAll(series);
 
         } catch (IOException | NoSuchMethodException | ParseException e) {
             e.printStackTrace();
@@ -115,12 +126,22 @@ public class RaportTotalService {
 
     /** zapisanie przefiltrowanego raportu do pliku XLS i umieszcze tego pliku w katalogu z plikami. Zmienna Naming.LOCAL_PATH*/
 
-    public void saveFilteredRaportToXLSFileIntoDirectory(String filename, String dateFrom, String dateTo, RaportPropertiesIncome incomeProps) {
+    public void saveFilteredRaportToXLSFileIntoDirectory(String filename, RaportPropertiesIncome incomeProps) {
         try {
-            managerXLS.saveListToXLSFileInToDirectory(filename, getRaportTotalByProperties(dateFrom, dateTo, incomeProps));
+            managerXLS.saveListToXLSFileInToDirectory(filename, getRaportTotalByProperties(incomeProps.getDateFrom(), incomeProps.getDateTo(), incomeProps));
         } catch (ParseException | NoSuchMethodException | InvocationTargetException | IllegalAccessException | IOException e) {
             e.printStackTrace();
         }
     }
 
+    /** zapisanie przefiltrowanego agregowanego raportu do pliku XLS i umieszcze tego pliku w katalogu z plikami. Zmienna Naming.LOCAL_PATH*/
+
+    public void saveFilteredAgregRaportToXLSFileIntoDirectory(String filename, List<RaportAgregowany> series) {
+         ManagerXLS<RaportAgregowany> managerXLS = new ManagerXLS<>(RaportAgregowany.class);
+        try {
+            managerXLS.saveListToXLSFileInToDirectory(filename, series);
+        } catch ( NoSuchMethodException | InvocationTargetException | IllegalAccessException | IOException e) {
+            e.printStackTrace();
+        }
+    }
 }

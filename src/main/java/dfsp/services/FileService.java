@@ -27,7 +27,7 @@ import static dfsp.commons.Naming.*;
 public class FileService {
 
     public FileService() {
-        DirectoryCreator.createDirecotry();
+        DirectoryCreator.createDirecotries();
     }
 
     public List<LocalFile> getFiles() throws IOException {
@@ -83,4 +83,7 @@ public class FileService {
         }
     }
 
+    public Resource getImg(String filename) throws IOException {
+        return new UrlResource(Paths.get(LOGO_PATH + filename).toUri());
+    }
 }

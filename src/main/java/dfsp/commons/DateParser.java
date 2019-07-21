@@ -10,8 +10,19 @@ public class DateParser {
     private static final Logger logger = Logger.getLogger(DateParser.class.getName());
 
     public static java.sql.Date toSqlDate(String date) throws ParseException {
+    //    System.out.println("before"  + date);
+        SimpleDateFormat formatter = new SimpleDateFormat("dd-MMM-yyyy");
+        Date parsedDate = formatter.parse(date);
+     //   System.out.println(new java.sql.Date(parsedDate.getTime()));
+        return new java.sql.Date(parsedDate.getTime());
+
+    }
+
+    public static java.sql.Date fromSqlDate(String date) throws ParseException {
+        //    System.out.println("before"  + date);
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
         Date parsedDate = formatter.parse(date);
+        //   System.out.println(new java.sql.Date(parsedDate.getTime()));
         return new java.sql.Date(parsedDate.getTime());
 
     }

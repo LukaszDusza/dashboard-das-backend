@@ -22,6 +22,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -48,12 +49,12 @@ public class ManagerXLS<T> {
         headerCellStyle.setFont(headerFont);
 
         // ---- create column titles and first row in document ----
-        List<String> columnsTitles = new ArrayList<>();
+        List<String> columnsTitles = new LinkedList<>();
 
         for (Field f : clazz.getDeclaredFields()) {
             columnsTitles.add(f.getName());
         }
-        columnsTitles.remove(0); //without id
+      //  columnsTitles.remove(0); //without id
 
         Row headerRow = sheet.createRow(0);
         for (int i = 0; i < columnsTitles.size(); i++) {
@@ -62,12 +63,13 @@ public class ManagerXLS<T> {
             cell.setCellStyle(headerCellStyle);
         }
 
-        columnsTitles.forEach(
-                t -> {
-                    String name = "get" + t.substring(0, 1).toUpperCase() + t.substring(1);
-                    System.out.println(name);
-                }
-        );
+//        columnsTitles.forEach(
+//                t -> {
+//                    String name = "get" + t.substring(0, 1).toUpperCase() + t.substring(1);
+//                    System.out.println(name);
+//                }
+//        );
+
 
         for (int i = 0; i < series.size(); i++) {
 
@@ -78,7 +80,7 @@ public class ManagerXLS<T> {
                 HSSFCell cell = row.createCell(j);
                 Method method = series.get(i).getClass().getMethod("get" + columnsTitles.get(j).substring(0, 1).toUpperCase() + columnsTitles.get(j).substring(1));
 
-                System.out.println(method.invoke(series.get(i)));
+             //   System.out.println(method.getName());
                 Object result = method.invoke(series.get(i));
                 cell.setCellValue(String.valueOf(result));
 
@@ -96,24 +98,32 @@ public class ManagerXLS<T> {
         return new File(file);
     }
 
-    public List<T> loadXLSFileToList(MultipartFile file) throws IOException, ParseException, NoSuchMethodException {
+    public List<T> loadXLSFileToList(MultipartFile file) throws IOException, ParseException, NoSuchMethodException, NullPointerException {
 
         InputStream inputStream = new BufferedInputStream(file.getInputStream());
         HSSFWorkbook workbook = new HSSFWorkbook(inputStream);
         Sheet sheet = workbook.getSheetAt(0);
 
-        List<T> series = new ArrayList<>();
+        List<T> series = new LinkedList<>();
 
         Constructor<T> reflConstruct = clazz.getConstructor();
 
         for (int rowIndex = 1; rowIndex < sheet.getPhysicalNumberOfRows(); rowIndex++) {
 
-            List<String> props = new ArrayList<>();
+            List<String> props = new LinkedList<>();
 
             for (int collIndex = 0; collIndex < sheet.getRow(0).getPhysicalNumberOfCells(); collIndex++) {
 
-                Cell cell = sheet.getRow(rowIndex).getCell(collIndex);
-                props.add(cell.toString());
+             //   try {
+                    Cell cell = sheet.getRow(rowIndex).getCell(collIndex);
+                    props.add(cell.toString());
+
+            //    } catch (NullPointerException e) {
+            //        Cell cell = sheet.getRow(rowIndex).createCell(collIndex);
+            //        cell.setCellValue("");
+            //        props.add(cell.toString());
+
+            //    }
 
             }
 
@@ -122,7 +132,7 @@ public class ManagerXLS<T> {
                 Object ob = reflConstruct.newInstance();
 
                 int count = 0;
-                for (int i = 1; i < clazz.getDeclaredFields().length; i++) {
+                for (int i = 0; i < clazz.getDeclaredFields().length; i++) {
                     Field field = clazz.getDeclaredFields()[i];
                     field.setAccessible(true);
 
@@ -131,7 +141,7 @@ public class ManagerXLS<T> {
                             field.set(ob, props.get(count));
 
                         } catch (NullPointerException e) {
-                            logger.info("Null value in:" + count + " Setting data to null");
+                            logger.info("String null value in:" + count + " Setting data to null");
                             field.set(ob, null);
                         }
                     }
@@ -142,7 +152,7 @@ public class ManagerXLS<T> {
                             field.set(ob, DateParser.toSqlDate(props.get(count)));
 
                         } catch (ParseException e) {
-                            logger.info("Null value in:" + count + " Setting data to null");
+                            logger.info("sql.Date null value in:" + count + " Setting data to null");
                             field.set(ob, null);
                         }
                     }
@@ -151,7 +161,7 @@ public class ManagerXLS<T> {
                         try {
                             field.set(ob, new BigDecimal(props.get(count)));
                         } catch (NumberFormatException e) {
-                            logger.info("Null value in:" + count + " Setting data to null");
+                            logger.info("BigDecimal null value in:" + count + " Setting data to null");
                             field.set(ob, null);
                         }
                     }

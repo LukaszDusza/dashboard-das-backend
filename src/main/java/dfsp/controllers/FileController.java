@@ -48,7 +48,7 @@ public class FileController {
                 .body(resource);
     }
 
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     @DeleteMapping(FILES + DELETE_PATH + "/{filename}")
     public boolean deleteFile(@PathVariable String filename) {
         return fileService.deleteFile(filename);
@@ -58,6 +58,17 @@ public class FileController {
     @PostMapping(FILES + UPLOAD_PATH)
     public void uploadFiles(@RequestParam("file") MultipartFile upload) {
         fileService.storeFile(upload);
+    }
 
+
+    /** permitAll()*/
+    @GetMapping(FILES + DOWNLOAD_PATH + "logo/{filename}")
+    public ResponseEntity<Resource> getLogoImg(@PathVariable String filename) throws IOException {
+        Resource resource = fileService.getImg(filename);
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType("image/png"))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "filename=\"" + resource.getFile().getName() + "\"")
+                .contentLength(resource.getFile().length())
+                .body(resource);
     }
 }

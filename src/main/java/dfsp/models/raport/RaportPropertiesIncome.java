@@ -13,6 +13,8 @@ import java.math.BigDecimal;
 @Setter
 public class RaportPropertiesIncome {
 
+    String dateFrom;
+    String dateTo;
     String agent;
     String dyrektorSegmentu;
     String dyrektorSektora;

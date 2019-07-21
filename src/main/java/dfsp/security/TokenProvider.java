@@ -50,12 +50,12 @@ public class TokenProvider implements Serializable {
     }
 
     public String generateToken(Authentication authentication) {
-        final String authorities = authentication.getAuthorities().stream()
+        final String roles = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(","));
         return Jwts.builder()
                 .setSubject(authentication.getName())
-                .claim(AUTHORITIES_KEY, authorities)
+                .claim(ROLE, roles)
                 .signWith(SignatureAlgorithm.HS256, SIGNING_KEY)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
@@ -75,7 +75,7 @@ public class TokenProvider implements Serializable {
         final Claims claims = (Claims) claimsJws.getBody();
 
         final Collection<? extends GrantedAuthority> authorities =
-                Arrays.stream(claims.get(AUTHORITIES_KEY).toString().split(","))
+                Arrays.stream(claims.get(ROLE).toString().split(","))
                         .map(SimpleGrantedAuthority::new)
                         .collect(Collectors.toList());
 

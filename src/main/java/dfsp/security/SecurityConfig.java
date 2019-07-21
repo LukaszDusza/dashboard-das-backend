@@ -25,6 +25,7 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private CustomUserService customUserService;
     private PasswordEncoder passwordEncoder;
     private JwtAuthenticationEntryPoint unauthorizedHandler;
+    private JwtAccessDeniedHandler accessDeniedHandler;
 
     public SecurityConfig(CustomUserService customUserService, PasswordEncoder passwordEncoder, JwtAuthenticationEntryPoint unauthorizedHandler) {
         this.customUserService = customUserService;
@@ -39,10 +40,13 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .cors().configurationSource(req -> new CorsConfiguration().applyPermitDefaultValues())
                 .and()
                 .authorizeRequests()
-                .antMatchers(HttpMethod.POST, SIGN_UP_URL, LOGIN, TOKEN_AUTH).permitAll()
+                .antMatchers(LOGO_URL).permitAll()
+                .antMatchers(HttpMethod.POST, SIGN_UP_URL, LOGIN, TOKEN_AUTH, LOGO_URL).permitAll()
                 .anyRequest().authenticated()
                 .and()
                 .exceptionHandling().authenticationEntryPoint(unauthorizedHandler)
+                .and()
+                .exceptionHandling().accessDeniedHandler(accessDeniedHandler)
                 .and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .addFilterBefore(authenticationTokenFilterBean(), UsernamePasswordAuthenticationFilter.class)
